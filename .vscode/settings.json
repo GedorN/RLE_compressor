@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "filtros2d.h": "c"
+        "filtros2d.h": "c",
+        "bit": "c",
+        "cwchar": "c",
+        "random": "c",
+        "limits": "c",
+        "functional": "c"
     }
 }
