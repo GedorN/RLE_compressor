@@ -1,12 +1,12 @@
 /*============================================================================*/
-/* MANIPULAÇÃO DE ARQUIVOS BMP                                                */
+/* MANIPULAï¿½ï¿½O DE ARQUIVOS BMP                                                */
 /*----------------------------------------------------------------------------*/
 /* Autor: Bogdan T. Nassu - nassu@dainf.ct.utfpr.edu.br                       */
 /*============================================================================*/
-/** Este arquivo traz declarações de um tipo e rotinas para manipulação de
- * arquivos bmp. Como temos um propósito puramente didático, apenas um sub-
- * conjunto mínimo do formato foi implementado. Usamos aqui matrizes alocadas
- * dinamicamente e números de ponto flutuante. Esta não é a forma mais eficiente
+/** Este arquivo traz declaraï¿½ï¿½es de um tipo e rotinas para manipulaï¿½ï¿½o de
+ * arquivos bmp. Como temos um propï¿½sito puramente didï¿½tico, apenas um sub-
+ * conjunto mï¿½nimo do formato foi implementado. Usamos aqui matrizes alocadas
+ * dinamicamente e nï¿½meros de ponto flutuante. Esta nï¿½o ï¿½ a forma mais eficiente
  * de se trabalhar com imagens, mas procuramos priorizar a clareza e a
  * facilidade de uso. */
 /*============================================================================*/
@@ -35,15 +35,15 @@ int salvaHeaderDIB (FILE* stream, Imagem* img);
 int salvaDados (FILE* stream, Imagem* img);
 
 /*============================================================================*/
-/* FUNÇÕES DO MÓDULO                                                          */
+/* FUNï¿½ï¿½ES DO Mï¿½DULO                                                          */
 /*============================================================================*/
 /** Cria uma imagem vazia.
  *
- * Parâmetros: int largura: largura da imagem.
+ * Parï¿½metros: int largura: largura da imagem.
  *             int altura: altura da imagem.
- *             int n_canais: número de canais.
+ *             int n_canais: nï¿½mero de canais.
  *
- * Valor de retorno: a imagem alocada. A responsabilidade por desalocá-la é do
+ * Valor de retorno: a imagem alocada. A responsabilidade por desalocï¿½-la ï¿½ do
  *                   chamador. */
 
 Imagem* criaImagem (int largura, int altura, int n_canais)
@@ -63,12 +63,12 @@ Imagem* criaImagem (int largura, int altura, int n_canais)
 	img->altura = altura;
 	img->n_canais = n_canais;
 
-    img->dados = (float***) malloc (sizeof (float**) * n_canais); /* Uma matriz por canal. */
+    img->dados = (unsigned int***) malloc (sizeof (unsigned int**) * n_canais); /* Uma matriz por canal. */
 	for (i = 0; i < n_canais; i++)
 	{
-		img->dados [i] = (float**) malloc (sizeof (float*) * altura);
+		img->dados [i] = (unsigned int**) malloc (sizeof (unsigned int*) * altura);
 		for (j = 0; j < altura; j++)
-			img->dados [i][j] = (float*) malloc (sizeof (float) * largura);
+			img->dados [i][j] = (unsigned int*) malloc (sizeof (unsigned int) * largura);
 	}
 
 	return (img);
@@ -77,7 +77,7 @@ Imagem* criaImagem (int largura, int altura, int n_canais)
 /*----------------------------------------------------------------------------*/
 /** Destroi uma imagem dada.
  *
- * Parâmetros: Imagem* img: a imagem a destruir.
+ * Parï¿½metros: Imagem* img: a imagem a destruir.
  *
  * Valor de retorno: nenhum. */
 
@@ -98,12 +98,12 @@ void destroiImagem (Imagem* img)
 /*----------------------------------------------------------------------------*/
 /** Abre um arquivo de imagem dado.
  *
- * Parâmetros: char* arquivo: caminho do arquivo a abrir.
- *             int n_canais: número de canais. Deve ser 1 ou 3. Se for 1,
+ * Parï¿½metros: char* arquivo: caminho do arquivo a abrir.
+ *             int n_canais: nï¿½mero de canais. Deve ser 1 ou 3. Se for 1,
  *               converte a imagem para escala de cinza.
  *
  * Valor de retorno: uma imagem alocada contendo os dados do arquivo, ou NULL
- *                   se não for possível abrir a imagem. */
+ *                   se nï¿½o for possï¿½vel abrir a imagem. */
 
 Imagem* abreImagem (char* arquivo, int n_canais)
 {
@@ -134,7 +134,7 @@ Imagem* abreImagem (char* arquivo, int n_canais)
 		return (NULL);
 	}
 
-	/* Pronto, cabeçalhos lidos! Vamos agora colocar o fluxo nos dados... */
+	/* Pronto, cabeï¿½alhos lidos! Vamos agora colocar o fluxo nos dados... */
 	if (fseek (stream, data_offset, SEEK_SET) != 0)
 	{
 		printf ("abreImagem: erro lendo dados do arquivo.\n");
@@ -145,7 +145,7 @@ Imagem* abreImagem (char* arquivo, int n_canais)
 	/* ... e tudo pronto para criar nossa imagem! */
 	img = criaImagem (largura, altura, 3);
 
-	/* Lê os dados. */
+	/* Lï¿½ os dados. */
 	if (!leDados (stream, img))
 	{
 		printf ("abreImagem: erro lendo dados do arquivo.\n");
@@ -162,10 +162,12 @@ Imagem* abreImagem (char* arquivo, int n_canais)
         int i, j;
         float** ptr_canal0;
 
-        /* Para não ficar tão ineficiente, reaproveita a memória da imagem RGB original. */
+        /* Para nï¿½o ficar tï¿½o ineficiente, reaproveita a memï¿½ria da imagem RGB original. */
         for (i = 0; i < img->altura; i++)
-            for (j = 0; j < img->largura; j++)
+            for (j = 0; j < img->largura; j++) {
+				printf("UÃ© mano: %u\n", img->dados [0][i][j]);
                 img->dados [0][i][j] = img->dados [0][i][j] * 0.299f + img->dados [1][i][j] * 0.587f + img->dados [2][i][j] * 0.114f;
+			}
 
         /* Modifica a imagem original. */
         ptr_canal0 = img->dados [0];
@@ -187,10 +189,10 @@ Imagem* abreImagem (char* arquivo, int n_canais)
 /*----------------------------------------------------------------------------*/
 /** Salva uma imagem em um arquivo dado.
  *
- * Parâmetros: Imagem* img: imagem a salvar.
+ * Parï¿½metros: Imagem* img: imagem a salvar.
  *             char* arquivo: caminho do arquivo a salvar.
  *
- * Valor de retorno: 0 se ocorreu algum erro, 1 do contrário. */
+ * Valor de retorno: 0 se ocorreu algum erro, 1 do contrï¿½rio. */
 
 int salvaImagem (Imagem* img, char* arquivo)
 {
@@ -231,11 +233,11 @@ int salvaImagem (Imagem* img, char* arquivo)
 }
 
 /*----------------------------------------------------------------------------*/
-/** Cria uma cópia de uma imagem.
+/** Cria uma cï¿½pia de uma imagem.
  *
- * Parâmetros: Imagem* img: imagem a clonar.
+ * Parï¿½metros: Imagem* img: imagem a clonar.
  *
- * Valor de retorno: uma nova imagem, igual à imagem dada. */
+ * Valor de retorno: uma nova imagem, igual ï¿½ imagem dada. */
 
 Imagem* clonaImagem (Imagem* img)
 {
@@ -251,9 +253,9 @@ Imagem* clonaImagem (Imagem* img)
 }
 
 /*----------------------------------------------------------------------------*/
-/** Copia o conteúdo de uma imagem para outra.
+/** Copia o conteï¿½do de uma imagem para outra.
  *
- * Parâmetros: Imagem* in: copia desta imagem...
+ * Parï¿½metros: Imagem* in: copia desta imagem...
  *             Imagem* out: ... para esta.
  *
  * Valor de retorno: nenhum. */
@@ -275,12 +277,12 @@ void copiaConteudo (Imagem* in, Imagem* out)
 }
 
 /*----------------------------------------------------------------------------*/
-/** Redimensionamento por vizinho mais próximo. Simples e barato. Eu nem estou
- * pegando o vizinho mais próximo de verdade, estou truncando para baixo - o
- * resultado é quase o mesmo.
+/** Redimensionamento por vizinho mais prï¿½ximo. Simples e barato. Eu nem estou
+ * pegando o vizinho mais prï¿½ximo de verdade, estou truncando para baixo - o
+ * resultado ï¿½ quase o mesmo.
  *
- * Parâmetros: Imagem* in: imagem de entrada.
- *             Imagem* out: imagem de saída. Deve ter o mesmo número de canais
+ * Parï¿½metros: Imagem* in: imagem de entrada.
+ *             Imagem* out: imagem de saï¿½da. Deve ter o mesmo nï¿½mero de canais
  *               da imagem de entrada.
  *
  * Valor de retorno: nenhum. */
@@ -310,10 +312,10 @@ void redimensionaNN (Imagem* in, Imagem* out)
 }
 
 /*----------------------------------------------------------------------------*/
-/** Redimensionamento com interpolação bilinear.
+/** Redimensionamento com interpolaï¿½ï¿½o bilinear.
  *
- * Parâmetros: Imagem* in: imagem de entrada.
- *             Imagem* out: imagem de saída. Deve ter o mesmo número de canais
+ * Parï¿½metros: Imagem* in: imagem de entrada.
+ *             Imagem* out: imagem de saï¿½da. Deve ter o mesmo nï¿½mero de canais
  *               da imagem de entrada.
  *
  * Valor de retorno: nenhum. */
@@ -337,7 +339,7 @@ void redimensionaBilinear (Imagem* in, Imagem* out)
 
     for (row = 0; row < out->altura; row++)
     {
-        // Calcula os parâmetros verticais.
+        // Calcula os parï¿½metros verticais.
         y = row*vscale-0.5f;
         floor_y = floorf (y);
         t = ((int) floor_y);
@@ -350,7 +352,7 @@ void redimensionaBilinear (Imagem* in, Imagem* out)
 
         for (col = 0; col < out->largura; col++)
         {
-            // Calcula os parâmetros horizontais.
+            // Calcula os parï¿½metros horizontais.
             x = col*hscale-0.5f;
             floor_x = floorf (x);
             l = ((int) floor_x);
@@ -373,12 +375,12 @@ void redimensionaBilinear (Imagem* in, Imagem* out)
 }
 
 /*============================================================================*/
-/* FUNÇÕES INTERNAS (LEITURA)                                                 */
+/* FUNï¿½ï¿½ES INTERNAS (LEITURA)                                                 */
 /*============================================================================*/
 /** Pega os 4 primeiros bytes do buffer e coloca em um unsigned long,
  * considerando os bytes em ordem little endian.
  *
- * Parâmetros: unsigned char* buffer: lê 4 bytes daqui.
+ * Parï¿½metros: unsigned char* buffer: lï¿½ 4 bytes daqui.
  *
  * Valor de Retorno: um unsigned long com os dados do buffer reorganizados. */
 
@@ -388,13 +390,13 @@ unsigned long getLittleEndianULong (unsigned char* buffer)
 }
 
 /*----------------------------------------------------------------------------*/
-/** Lê o header de 14 bytes do formato BMP.
+/** Lï¿½ o header de 14 bytes do formato BMP.
  *
- * Parâmetros: FILE* stream: arquivo a ser lido. Supomos que já está aberto.
- *             unsigned long* offset: parâmetro de saída, é o deslocamento dos
- *               dados a partir do início do arquivo.
+ * Parï¿½metros: FILE* stream: arquivo a ser lido. Supomos que jï¿½ estï¿½ aberto.
+ *             unsigned long* offset: parï¿½metro de saï¿½da, ï¿½ o deslocamento dos
+ *               dados a partir do inï¿½cio do arquivo.
  *
- * Valor de Retorno: 1 se não ocorreram erros, 0 do contrário. */
+ * Valor de Retorno: 1 se nï¿½o ocorreram erros, 0 do contrï¿½rio. */
 
 int leHeaderBitmap (FILE* stream, unsigned long* offset)
 {
@@ -419,17 +421,17 @@ int leHeaderBitmap (FILE* stream, unsigned long* offset)
 }
 
 /*----------------------------------------------------------------------------*/
-/** Lê o header DIB.
+/** Lï¿½ o header DIB.
  *
- * Parâmetros: FILE* stream: arquivo a ser lido. Supomos que já está aberto.
- *             unsigned long* largura: parâmetro de saída. Largura da imagem.
- *             unsigned long* altura: parâmetro de saída. Altura da imagem.
+ * Parï¿½metros: FILE* stream: arquivo a ser lido. Supomos que jï¿½ estï¿½ aberto.
+ *             unsigned long* largura: parï¿½metro de saï¿½da. Largura da imagem.
+ *             unsigned long* altura: parï¿½metro de saï¿½da. Altura da imagem.
  *
- * Valor de Retorno: 1 se não ocorreram erros, 0 do contrário. */
+ * Valor de Retorno: 1 se nï¿½o ocorreram erros, 0 do contrï¿½rio. */
 
 int leHeaderDIB (FILE* stream, unsigned long* largura, unsigned long* altura)
 {
-	unsigned long size = 0; /* O tamanho do cabeçalho DIB. */
+	unsigned long size = 0; /* O tamanho do cabeï¿½alho DIB. */
 
 	if (fread ((void*) &size, 4, 1, stream) != 1)
 	{
@@ -468,28 +470,28 @@ int leHeaderDIB (FILE* stream, unsigned long* largura, unsigned long* altura)
 			return (0);
 		}
 
-		/* Bpp. Aqui, estou forçando 24 bpp. */
+		/* Bpp. Aqui, estou forï¿½ando 24 bpp. */
 		if (fread ((void*) &tmp_short, 2, 1, stream) != 1 || tmp_short != 24)
 		{
 			printf ("leHeaderDIB: supporta apenas arquivos com 24 bpp.\n");
 			return (0);
 		}
 
-		/* Compressão. Vou aceitar só imagens sem compressão. */
+		/* Compressï¿½o. Vou aceitar sï¿½ imagens sem compressï¿½o. */
 		if (fread ((void*) &tmp_long, 4, 1, stream) != 1 || tmp_long != 0)
 		{
 			printf ("leHeaderDIB: suporta apenas arquivos sem compressao.\n");
 			return (0);
 		}
 
-		/* Pula os próximos 12 bytes. */
+		/* Pula os prï¿½ximos 12 bytes. */
 		if (fseek (stream, 12, SEEK_CUR) != 0)
 		{
 			printf ("leHeaderDIB: erro lendo header.\n");
 			return (0);
 		}
 
-		/* Paleta. Não é para usar! */
+		/* Paleta. Nï¿½o ï¿½ para usar! */
 		if (fread ((void*) &tmp_long, 4, 1, stream) != 1 || tmp_long != 0)
 		{
 			printf ("leHeaderDIB: sem suporte a arquivos com paletas de cores.\n");
@@ -503,12 +505,12 @@ int leHeaderDIB (FILE* stream, unsigned long* largura, unsigned long* altura)
 }
 
 /*----------------------------------------------------------------------------*/
-/** Lê os dados de um arquivo.
+/** Lï¿½ os dados de um arquivo.
  *
- * Parâmetros: FILE* stream: arquivo a ser lido. Supomos que já está aberto.
+ * Parï¿½metros: FILE* stream: arquivo a ser lido. Supomos que jï¿½ estï¿½ aberto.
  *             Imagem* img: imagem a preencher.
  *
- * Valor de Retorno: 1 se não ocorreram erros, 0 do contrário. */
+ * Valor de Retorno: 1 se nï¿½o ocorreram erros, 0 do contrï¿½rio. */
 
 int leDados (FILE* stream, Imagem* img)
 {
@@ -517,21 +519,21 @@ int leDados (FILE* stream, Imagem* img)
 	unsigned char data;
 
 	/* Calcula quantos bytes preciso pular no fim de cada linha.
-	  Aqui, cada linha precisa ter um múltiplo de 4. */
+	  Aqui, cada linha precisa ter um mï¿½ltiplo de 4. */
 	line_padding = (int) ceil (img->largura*3.0/4.0)*4 - (img->largura*3);
 
-	/* Lê! */
+	/* Lï¿½! */
 	for (i = img->altura-1; i >= 0; i--)
 	{
 		for (j = 0; j < img->largura; j++)
 		{
-		    /* Lê 3 bytes, na ordem BGR. */
+		    /* Lï¿½ 3 bytes, na ordem BGR. */
 		    for (k = 0; k < 3; k++)
 		    {
                 if (fread (&data, 1, 1, stream) != 1)
                     return (0);
 
-                img->dados [2-k][i][j] = (float) data / 255.0f; // 2-k -> 0 = R, 1 = G, 2 = B. Coloca na faixa [0,1]
+                img->dados [2-k][i][j] = (unsigned int) data; // 2-k -> 0 = R, 1 = G, 2 = B. Coloca na faixa [0,1]
 		    }
 		}
 
@@ -543,12 +545,12 @@ int leDados (FILE* stream, Imagem* img)
 }
 
 /*============================================================================*/
-/* FUNÇÕES INTERNAS (ESCRITA)                                                 */
+/* FUNï¿½ï¿½ES INTERNAS (ESCRITA)                                                 */
 /*============================================================================*/
 /** Coloca um unsigned long nos 4 primeiros bytes do buffer, em ordem little
  * endian.
  *
- * Parâmetros: unsigned long val: valor a escrever.
+ * Parï¿½metros: unsigned long val: valor a escrever.
  *             unsigned char* buffer: coloca o valor aqui.
  *
  * Valor de Retorno: NENHUM */
@@ -565,7 +567,7 @@ void putLittleEndianULong (unsigned long val, unsigned char* buffer)
 /** Coloca um unsigned short nos 2 primeiros bytes do buffer, em ordem little
  * endian.
  *
- * Parâmetros: unsigned short val: valor a escrever.
+ * Parï¿½metros: unsigned short val: valor a escrever.
  *             unsigned char* buffer: coloca o valor aqui.
  *
  * Valor de Retorno: NENHUM */
@@ -579,10 +581,10 @@ void putLittleEndianUShort (unsigned short val, unsigned char* buffer)
 /*----------------------------------------------------------------------------*/
 /** Escreve o header Bitmap.
  *
- * Parâmetros: FILE* file: arquivo a ser escrito. Supomos que já está aberto.
+ * Parï¿½metros: FILE* file: arquivo a ser escrito. Supomos que jï¿½ estï¿½ aberto.
  *             Imagem* img: imagem a ser salva.
  *
- * Valor de Retorno: 1 se não ocorreram erros, 0 do contrário. */
+ * Valor de Retorno: 1 se nï¿½o ocorreram erros, 0 do contrï¿½rio. */
 
 int salvaHeaderBitmap (FILE* stream, Imagem* img)
 {
@@ -593,7 +595,7 @@ int salvaHeaderBitmap (FILE* stream, Imagem* img)
 	data [pos++] = 'B';
 	data [pos++] = 'M';
 
-	/* Tamanho do arquivo. Definimos como sendo 14+40 (dos cabeçalhos) + o espaço dos dados. */
+	/* Tamanho do arquivo. Definimos como sendo 14+40 (dos cabeï¿½alhos) + o espaï¿½o dos dados. */
 	bytes_por_linha = (unsigned long) ceil (img->largura*3.0/4.0)*4;
 	putLittleEndianULong (14+40+img->altura*bytes_por_linha, &(data [pos]));
 	pos+=4;
@@ -602,7 +604,7 @@ int salvaHeaderBitmap (FILE* stream, Imagem* img)
 	putLittleEndianULong (0, &(data [pos]));
 	pos+=4;
 
-	/* Offset. Definimos como 14+40 (o tamanho dos cabeçalhos). */
+	/* Offset. Definimos como 14+40 (o tamanho dos cabeï¿½alhos). */
 	putLittleEndianULong (14+40, &(data [pos]));
 
 	if (fwrite ((void*) data, 1, 14, stream) != 14)
@@ -617,10 +619,10 @@ int salvaHeaderBitmap (FILE* stream, Imagem* img)
 /*----------------------------------------------------------------------------*/
 /** Escreve o header DIB.
  *
- * Parâmetros: FILE* file: arquivo a ser escrito. Supomos que já está aberto.
+ * Parï¿½metros: FILE* file: arquivo a ser escrito. Supomos que jï¿½ estï¿½ aberto.
  *             Imagem* img: imagem a ser salva.
  *
- * Valor de Retorno: 1 se não ocorreram erros, 0 do contrário. */
+ * Valor de Retorno: 1 se nï¿½o ocorreram erros, 0 do contrï¿½rio. */
 
 int salvaHeaderDIB (FILE* stream, Imagem* img)
 {
@@ -648,7 +650,7 @@ int salvaHeaderDIB (FILE* stream, Imagem* img)
 	putLittleEndianUShort (24, &(data [pos]));
 	pos += 2;
 
-	/* Compressão. */
+	/* Compressï¿½o. */
 	putLittleEndianULong (0, &(data [pos]));
 	pos += 4;
 
@@ -657,7 +659,7 @@ int salvaHeaderDIB (FILE* stream, Imagem* img)
 	putLittleEndianULong (img->altura*bytes_por_linha, &(data [pos]));
 	pos += 4;
 
-	/* Resolução horizontal e vertical (simplesmente copiei este valor de algum arquivo!). */
+	/* Resoluï¿½ï¿½o horizontal e vertical (simplesmente copiei este valor de algum arquivo!). */
 	putLittleEndianULong (0xF61, &(data [pos]));
 	pos += 4;
 	putLittleEndianULong (0xF61, &(data [pos]));
@@ -681,10 +683,10 @@ int salvaHeaderDIB (FILE* stream, Imagem* img)
 /*----------------------------------------------------------------------------*/
 /** Escreve o bloco de dados.
  *
- * Parâmetros: FILE* file: arquivo a ser escrito. Supomos que já está aberto.
+ * Parï¿½metros: FILE* file: arquivo a ser escrito. Supomos que jï¿½ estï¿½ aberto.
  *             Imagem* img: imagem a ser salva.
  *
- * Valor de Retorno: 1 se não ocorreram erros, 0 do contrário. */
+ * Valor de Retorno: 1 se nï¿½o ocorreram erros, 0 do contrï¿½rio. */
 
 int salvaDados (FILE* stream, Imagem* img)
 {
@@ -695,7 +697,7 @@ int salvaDados (FILE* stream, Imagem* img)
 	unsigned long pos_linha;
 
 	/* Calcula quantos bytes preciso pular no fim de cada linha.
-	  Aqui, cada linha precisa ter um múltiplo de 4. */
+	  Aqui, cada linha precisa ter um mï¿½ltiplo de 4. */
 	largura_linha = (unsigned long) ceil (img->largura*3.0/4.0)*4;
 	line_padding = largura_linha - (img->largura*3);
 	linha = (unsigned char*) malloc (sizeof (unsigned char) * largura_linha);
@@ -709,11 +711,11 @@ int salvaDados (FILE* stream, Imagem* img)
 		    if (img->n_canais == 3)
 		    {
 		        for (k = 0; k < 3; k++)
-		            linha [pos_linha++] = float2uchar (img->dados [2-k][i][j]);
+		            linha [pos_linha++] =  (img->dados [2-k][i][j]);
 		    }
 		    else /* Imagem de 1 canal: converte para uchar e replica 3 vezes. */
 		    {
-		        dado = float2uchar (img->dados [0][i][j]);
+		        dado =  (img->dados [0][i][j]);
                 for (k = 0; k < 3; k++)
                     linha [pos_linha++] = dado;
             }
