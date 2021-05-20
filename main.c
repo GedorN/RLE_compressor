@@ -10,18 +10,18 @@
 #define BLACK 0
 #define WHITE 1
 #define UNDEFINED -1
+#define LEVEL 8
 
 #define MIN(a,b) ((a<b)?a:b)
 #define MAX(a,b) ((a>b)?a:b)
 
 typedef struct node node;
+#pragma pack(1)
 struct node{
     unsigned char color: 1;
     node** children;
 };
 void fillComponent(int component_width, int component_height, Coordenada tl, int cor, Imagem *img) {
-    // printf("Vou começar do [%d][%d]\n", tl.x, tl.y);
-    // printf("Até o %d x %d\n", component_width, component_height);
     for(int i = tl.x - 1; i <= tl.x + component_width + 1; i++) {
         for (int j = tl.y - 1; j <= tl.y + component_height + 1; j++) {
             if (j + component_height < img->altura && i + component_width < img->largura && i -1  > 0 && j - 1 > 0) {
@@ -37,16 +37,6 @@ void set_component(node* root, Imagem *img, Coordenada tl, int component_width, 
     Coordenada tl2 = criaCoordenada(tl.x + (component_width / 2), tl.y  );
     Coordenada tl3 = criaCoordenada(tl.x, tl.y + (component_height / 2));
     Coordenada tl4 = criaCoordenada(tl.x + (component_width / 2), tl.y + (component_height / 2));
-    // printf("Ué véi 1\n");
-    // fillComponent(component_width / 2, component_height / 2, tl, 255, img);
-    // printf("Ué véi 2\n");
-    // fillComponent(component_width / 2, component_height / 2, tl2, 255, img);
-    // printf("Ué véi 3\n");
-    // fillComponent(component_width / 2, component_height / 2, tl3, 255, img);
-    // printf("Ué véi 4\n");
-    // fillComponent(component_width / 2, component_height / 2, tl4, 255, img);
-
-    // fillComponent(component_width, component_height, tl, 255, img);
     if (root->children[0] == NULL && root->children[1] == NULL && root->children[2] == NULL && root->children[3] == NULL) {
         int cor = root->color == 0 ? 0 : 255;
         fillComponent(component_width, component_height, tl, cor, img);
@@ -97,13 +87,14 @@ Imagem* revert_to_image(node* root, int img_width, int img_height) {
 
 node* createNode() {
     node* sx = malloc(sizeof(node));
-    sx->color = 0;
+    sx->color = (unsigned char )0;
     sx->children = (node **) malloc(sizeof(node*) * 4);
     for (int i = 0; i < 4; i++) {
         sx->children[i] = NULL;
     }
     return sx;
 }
+
 
 
 void destroyNode(node* n) {
@@ -130,11 +121,11 @@ void print_node(node* n) {
 int size_node(node* n) {
 
     if (n->children[0] == NULL && n->children[1] == NULL && n->children[2] == NULL && n->children[3] == NULL) {
-        return sizeof(*n);
+        return sizeof(*n) ;
     } else {
         int a = 0;
        for (int i = 0; i < 4; i++) {
-           a+= size_node((n->children[i]));
+           a+= size_node((n->children[i])) ;
        }
         return a;
     }
@@ -145,8 +136,7 @@ int get_bg_color(Imagem *img) {
     
     for (int i = 0; i < img->largura; i++) {
         for (int j = 0; j < img->altura; j++) {
-            // printf("somando esse: %u\n", img->dados[0][i][j]);
-            sum_colors += img->dados[0][j][i] == 255 ? 1 : -1;
+            sum_colors += img->dados[0][j][i] == 0 ? -1 : 1;
         }
     }
     if (sum_colors > 0) {
@@ -173,27 +163,23 @@ int getComponentColor(Imagem *img, Coordenada *a, Coordenada *b) {
         b_aux_x = a->x;
         b_aux_y = a->y;
     }
-    // int a_aux_x = (a->x) < (b->x) ? a->x : b->x;
-    // int a_aux_y = (a->y) < (b->y) ? a->y : b->y;
-    
-    
-    // int b_aux_x = (a->x) > (b->x) ? a->x : b->x;
-    // int b_aux_y = (a->y) > (b->y) ? a->y : b->y;
 
     Coordenada a_aux = criaCoordenada(a_aux_x, a_aux_y);
     Coordenada b_aux = criaCoordenada(b_aux_x, b_aux_y);
     if (a_aux_y < b_aux_y) {
-        for (int i = a_aux.x; i < b_aux.x; i++) {
-            for (int j = a_aux.y; j < b_aux.y; j++) {
-                component_pixels++;
-                sum_colors += img->dados[0][j][i];
+        for (int i = a_aux.x; i <= b_aux.x; i++) {
+            for (int j = a_aux.y; j <= b_aux.y; j++) {
+                if (j < img->altura && i < img->largura && i > 0 && j > 0) {
+                    component_pixels++;
+                    sum_colors += img->dados[0][j][i];
+                }
             }
         }
 
     } else {
-        for (int i = a_aux.x; i < b_aux.x; i++) {
-            for (int j = a_aux.y; j > b_aux.y; j--) {
-                if (j < img->altura && i < img->largura) {
+        for (int i = a_aux.x; i <= b_aux.x; i++) {
+            for (int j = a_aux.y; j >= b_aux.y; j--) {
+                if (j < img->altura && i < img->largura && i > 0 && j > 0) {
                     component_pixels++;
                     sum_colors += img->dados[0][j][i];
 
@@ -209,20 +195,18 @@ int getComponentColor(Imagem *img, Coordenada *a, Coordenada *b) {
     if ( (sum_colors/component_pixels) == 255) {
         return WHITE;
     }
-
     return UNDEFINED;
+
 
 }
 
 node* create_children(node* root, Imagem *img, int depth, Coordenada center, int size_x, int size_y) {
-    Cor cor = criaCor(255, 0, 0);
-    if (size_x  == 0 || size_y == 0) {
+    if (size_x  <= 0 || size_y <= 0) {
 
         node* n = createNode();
         n->color = img->dados[0][center.y][center.x] == 0 ? BLACK : WHITE;
         return n;
     }
-    // Coordenada center = {x: x, y: y};
     Coordenada lt = { x: center.x - size_x, y: center.y - size_y };
     Coordenada rt = { x: center.x + size_x, y: center.y - size_y };
     Coordenada lb = { x: center.x - size_x, y: center.y + size_y };
@@ -237,7 +221,7 @@ node* create_children(node* root, Imagem *img, int depth, Coordenada center, int
 
    if (color_a == BLACK || color_a == WHITE) {
         node* child_1 = createNode();
-        child_1->color = color_a;
+        child_1->color = (unsigned char)color_a & 0x01;
         root->children[0] = child_1;
     } else {
         node* child_1 = createNode();
@@ -248,7 +232,7 @@ node* create_children(node* root, Imagem *img, int depth, Coordenada center, int
 
     if (color_b == BLACK || color_b == WHITE) {
         node* child_2 = createNode();
-        child_2->color = color_b;
+        child_2->color = (unsigned char)color_b & 0x01;
         root->children[1] = child_2;
     } else {
         node* child_2 = createNode();
@@ -259,7 +243,7 @@ node* create_children(node* root, Imagem *img, int depth, Coordenada center, int
 
     if (color_c == BLACK || color_c == WHITE) {
         node* child_3 = createNode();
-        child_3->color = color_c;
+        child_3->color = (unsigned char)color_c & 0x01;
         root->children[2] = child_3;
     } else {
         node* child_3 = createNode();
@@ -270,7 +254,7 @@ node* create_children(node* root, Imagem *img, int depth, Coordenada center, int
 
     if (color_d == BLACK || color_d == WHITE) {
         node* child_4 = createNode();
-        child_4->color = color_d;
+        child_4->color = (unsigned char)color_d & 0x01;
         root->children[3] = child_4;
     } else {
         node* child_4 = createNode();
@@ -287,100 +271,113 @@ node* create_children(node* root, Imagem *img, int depth, Coordenada center, int
 int main () {
     clock_t start, stop;
     start = clock();
-    Imagem *img = abreImagem("img/1.bmp", 3);
-    Cor cor = criaCor(255, 0, 0);
-    // printf("Total: %d %d\n", img->largura, img->altura);
+    Imagem *img = abreImagem("img/a.bmp", 3);
 
 
-    Imagem *bpps[8];
-    node** root = (node **)malloc(sizeof(node*) * 8);
-    for (int i = 0; i < 8; i++) {
-        root[i] = createNode();
+    Imagem ***bpps = (Imagem***)malloc(sizeof(Imagem**) * img->n_canais);
+    node*** root = (node ***)malloc(sizeof(node**) * img->n_canais);
+    for (int i = 0; i < img->n_canais; i++) {
+        bpps[i] = (Imagem **) malloc(sizeof(Imagem*) * 8);
+        root[i] = (node **)malloc(sizeof(node **) * LEVEL);
     }
-    // Coordenada center = {x: img->largura / 2, y: img->altura / 2};
+
+    for (int canal = 0; canal < img->n_canais; canal++) {
+        for (int i = 0; i < LEVEL; i++) {
+            root[canal][i] = createNode();
+        }
+    }
     Coordenada lt = { x: 0, y: 0};
     Coordenada rt = { x: img->largura, y: 0  };
     Coordenada lb = { x: 0, y: img->altura };
     Coordenada rb = { x: img->largura, y: img->altura };
 
-    // Coordenada top = {x: img->largura / 2, y: 0 };
-    // Coordenada bot = {x: img->largura / 2, y: img->altura };
-    // Coordenada left = {x: 0, y: img->altura /2 };
-    // Coordenada rigth = {x: img->largura, y: img->altura /2 };
-    // desenhaLinha(center, top, cor, img);
-    // desenhaLinha(center, bot, cor, img);
-    // desenhaLinha(center, left, cor, img);
-    // desenhaLinha(center, rigth, cor, img);
-    // salvaImagem(img, "img/teste.bmp");
+    for (int canal = 0; canal < img->n_canais; canal++) {
+        for (int i = 0; i < LEVEL; i++) {
+            bpps[canal][i] = criaImagem(img->largura, img->altura, 1);
+        }
+        
+        for (int i = 0; i < img->largura; i++) {
+            for (int j = 0; j < img->altura; j++) {
+                int pixel = (img->dados[canal][j][i]);
+                for (int bi = 0; bi < LEVEL; bi++) {
+                    unsigned int aux_pixel = ((pixel << bi) >> 7) & 0x01;
+                    bpps[canal][bi]->dados[0][j][i] = aux_pixel == 0 ? 0 : 255;
+                }
+            }
+        }
 
-    for (int i = 0; i < 8; i++) {
-        bpps[i] = criaImagem(img->largura, img->altura, 1);
     }
-    for (int i = 0; i < img->largura; i++) {
-        for (int j = 0; j < img->altura; j++) {
-            int pixel = (img->dados[0][j][i]);
-            for (int bi = 0; bi < 8; bi++) {
-                unsigned int aux_pixel = ((pixel << bi) >> 7) & 0x01;
-                bpps[bi]->dados[0][j][i] = aux_pixel == 1 ? 255 : 0;
+    Coordenada center = criaCoordenada(img->largura / 2, img->altura / 2);
+    for (int canal = 0; canal < img->n_canais; canal++) {
+        for (int i = 0; i < LEVEL; i++) {
+            int color = get_bg_color(bpps[canal][i]);
+            root[canal][i]->color = color == WHITE ? (unsigned char) 1 : (unsigned char) 0;
+            root[canal][i] = create_children(root[canal][i], bpps[canal][i], 1, center, img->largura/2, img->altura/2);
+            destroiImagem(bpps[canal][i]);
+        }
+        free(bpps[canal]);
+
+    }
+
+    free(bpps);
+
+
+    //  Criando imagem final
+    Imagem* final = criaImagem(img->largura, img->altura, img->n_canais);
+    for (int canal = 0; canal < final->n_canais; canal++) {
+        for (int i = 0; i < img->largura; i++) {
+            for (int j = 0; j < img->altura; j++) {
+                final->dados[canal][j][i] = 0;
             }
         }
     }
-    Coordenada center = criaCoordenada(img->largura / 2, img->altura / 2);
-    Imagem *drawing = clonaImagem(bpps[0]);
-    for (int i = 0; i < 8; i++) {
-        int color = get_bg_color(bpps[i]);
-        root[i]->color = color == WHITE ? 1 : 0;
-        create_children(root[i], bpps[i], 1, center, img->largura/2, img->altura/2);
-        // create_children(root[i], bpps[i], 1, center, img->largura/2, img->altura/2);
-        // int color_a = getComponentColor(bpps[i], &center, &lt);
-        // int color_b = getComponentColor(bpps[i], &center, &rt);
-        // int color_c = getComponentColor(bpps[i], &center, &lb);
-        // int color_d = getComponentColor(bpps[i], &center, &rb);
-        // printf("No [%d] valor: %d \n", i, color_a);
-        // printf("No [%d] valor: %d \n", i, color_b);
-        // printf("No [%d] valor: %d \n", i, color_c);
-        // printf("No [%d] valor: %d \n", i, color_d);
 
-        // salvando imagem
+    // revertendo os bpps
+    for (int canal = 0; canal < final->n_canais; canal++) {
+        for (int i = 0; i < LEVEL; i++) {
+            Imagem* reversed = revert_to_image(root[canal][i], img->largura, img->altura);
+            for (int a = 0; a < final->largura; a++) {
+                for (int b = 0; b < final->altura; b++) {
+                    if (reversed->dados[0][b][a] == 0) {
+                        final->dados[canal][b][a] |= 0 << (7 - i);
+                    } else {
+                        final->dados[canal][b][a] |= 1 << (7 - i);
+                    }
+                }
+            }
+            destroiImagem(reversed);
+        }
 
-        char arr[30];
-        snprintf(arr, 12, "img/bpps_%d", i);
-        salvaImagem(bpps[i], arr);
-        destroiImagem(bpps[i]);
-    }
-
-    for (int i = 0; i < 8; i++) {
-        Imagem* reversed = revert_to_image(root[i], img->largura, img->altura);
-
-        char arra[300];
-        snprintf(arra, 50, "img/reversed_bpps_%d", i);
-        printf("salvando... %s\n", arra);
-        salvaImagem(reversed, arra);
-        destroiImagem(reversed);
     }
 
 
     int total = 0;
-    for(int i = 0; i < img->largura; i++) {
-        for (int j = 0; j < img->altura; j++) {
-            total += sizeof(img->dados[0][j][i]);
-        }
-    }
     int total_estutura = 0;
-    for (int i = 0; i < 8; i++) {
-        // print_node(root[i]);
-        total_estutura+= size_node(root[i]);
-        destroyNode(root[i]);
+    for (int canal = 0; canal < final->n_canais; canal++) {
+        for(int i = 0; i < img->largura; i++) {
+            for (int j = 0; j < img->altura; j++) {
+                total += sizeof(img->dados[canal][j][i]);
+            }
+        }
+        for (int i = 0; i < LEVEL; i++) {
+            total_estutura+= size_node(root[canal][i]);
+            destroyNode(root[canal][i]);
+        }
+
+        free(root[canal]);
     }
 
 
-    printf("Total de tamanho original: %d\n", total);
-    printf("Total da estrutura: %d\n", total_estutura + (0 * img->altura * img->largura));
-    destroyNode(root);
-    destroiImagem(drawing);
-    destroiImagem(img);
+
+
     stop = clock();
     printf("Tempo total: %.3f\n", ((double)(stop - start) / CLOCKS_PER_SEC));
+    printf("Total de tamanho original: %d\n", total/1000);
+    printf("Total da estrutura: %d\n", total_estutura /1000);
+    salvaImagem(final, "img/final.bmp");
+    free(root);
+    destroiImagem(final);
+    destroiImagem(img);
 
     return 0;
 }

@@ -165,7 +165,6 @@ Imagem* abreImagem (char* arquivo, int n_canais)
         /* Para n�o ficar t�o ineficiente, reaproveita a mem�ria da imagem RGB original. */
         for (i = 0; i < img->altura; i++)
             for (j = 0; j < img->largura; j++) {
-				printf("Ué mano: %u\n", img->dados [0][i][j]);
                 img->dados [0][i][j] = img->dados [0][i][j] * 0.299f + img->dados [1][i][j] * 0.587f + img->dados [2][i][j] * 0.114f;
 			}
 
