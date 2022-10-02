@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "filtros2d.h": "c",
+        "bit": "c",
+        "cwchar": "c",
+        "random": "c",
+        "limits": "c",
+        "functional": "c",
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "utility": "c"
+    }
+}
